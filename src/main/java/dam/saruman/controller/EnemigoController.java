@@ -27,7 +27,7 @@ public class EnemigoController {
     }
 
     @PutMapping("/enemigo/{id}")
-    public ResponseEntity<Enemigo> editarEnemigo(@PathVariable Long id, @RequestBody Enemigo enemigo){
+    public ResponseEntity<Enemigo> editarEnemigo(@PathVariable String id, @RequestBody Enemigo enemigo){
         Enemigo enemigoActualizado = enemigoService.actualizar(id, enemigo);
         if(enemigoActualizado != null){
             return new ResponseEntity<>(enemigoActualizado, HttpStatus.OK);
@@ -37,7 +37,7 @@ public class EnemigoController {
     }
 
     @DeleteMapping("/enemigo/{id}")
-    public ResponseEntity<Void> eliminarEnemigo(@PathVariable Long id){
+    public ResponseEntity<Void> eliminarEnemigo(@PathVariable String id){
         boolean eliminado = enemigoService.eliminar(id);
         if(eliminado){
             return new ResponseEntity<>(HttpStatus.OK);

@@ -1,18 +1,52 @@
 package dam.saruman.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
-@Entity
-@Table(name="enemigosestado")
+@Document(collection = "enemigosestado")
 public class Enemigo {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column
+    @Field("nombre")
     private String nombre;
+
+    @Field("pais")
+    private String pais;
+
+    @Field("afiliacion")
+    private String afiliacion;
+
+    // Constructor vacío
+    public Enemigo() {
+    }
+
+    // Constructor con parámetros
+    public Enemigo(String id, String nombre, String pais, String afiliacion){
+        this.id = id;
+        this.nombre = nombre;
+        this.pais = pais;
+        this.afiliacion = afiliacion;
+    }
+
+    // Getters y Setters
+    public String getId(){
+        return id;
+    }
+
+    public void setId(String id){
+        this.id = id;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
 
     public String getPais() {
         return pais;
@@ -28,33 +62,5 @@ public class Enemigo {
 
     public void setAfiliacion(String afiliacion) {
         this.afiliacion = afiliacion;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    @Column
-    private String pais;
-
-    @Column
-    private String afiliacion;
-
-    public Enemigo() {
-    }
-
-    public Enemigo(Long id, String nombre, String pais, String afiliacion){
-        this.id=id;
-        this.nombre=nombre;
-        this.pais=pais;
-        this.afiliacion=afiliacion;
-    }
-
-    public Long getId(){
-        return id;
     }
 }

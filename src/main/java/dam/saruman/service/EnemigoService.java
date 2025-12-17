@@ -20,7 +20,7 @@ public class EnemigoService {
         }else {
             System.out.println("Jefe esto va como una máquina");
             enemigos.forEach(enemigo -> {
-                System.out.println("ID"+enemigo.getId());
+                System.out.println("ID: " + enemigo.getId());
             });
         }
         return enemigos;
@@ -31,7 +31,7 @@ public class EnemigoService {
         return enemigoRepository.save(enemigo);
     }
 
-    public Enemigo actualizar(Long id, Enemigo enemigoActualizado){
+    public Enemigo actualizar(String id, Enemigo enemigoActualizado){
         Optional<Enemigo> enemigoExistente = enemigoRepository.findById(id);
         if(enemigoExistente.isPresent()){
             Enemigo enemigo = enemigoExistente.get();
@@ -46,7 +46,7 @@ public class EnemigoService {
         }
     }
 
-    public boolean eliminar(Long id){
+    public boolean eliminar(String id){
         Optional<Enemigo> enemigo = enemigoRepository.findById(id);
         if(enemigo.isPresent()){
             enemigoRepository.deleteById(id);
