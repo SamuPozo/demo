@@ -26,7 +26,18 @@ public class EnemigoService {
         return enemigos;
     }
 
+    // NUEVO: Buscar por nombre
+    public List<Enemigo> buscarPorNombre(String nombre){
+        return enemigoRepository.findByNombre(nombre);
+    }
+
     public Enemigo insertar(Enemigo enemigo){
+        // NUEVO: Validar que el nombre sea único
+        List<Enemigo> existentes = enemigoRepository.findByNombre(enemigo.getNombre());
+        if(!existentes.isEmpty()){
+            throw new IllegalArgumentException("Ya existe un enemigo con el nombre: " + enemigo.getNombre());
+        }
+
         System.out.println("Insertando enemigo: " + enemigo.getNombre());
         return enemigoRepository.save(enemigo);
     }
@@ -35,14 +46,20 @@ public class EnemigoService {
         Optional<Enemigo> enemigoExistente = enemigoRepository.findById(id);
         if(enemigoExistente.isPresent()){
             Enemigo enemigo = enemigoExistente.get();
+
+            // NUEVO: Validar nombre único (excepto el actual)
+            List<Enemigo> conMismoNombre = enemigoRepository.findByNombre(enemigoActualizado.getNombre());
+            if(!conMismoNombre.isEmpty() && !conMismoNombre.get(0).getId().equals(id)){
+                throw new IllegalArgumentException("Ya existe un enemigo con el nombre: " + enemigoActualizado.getNombre());
+            }
+
             enemigo.setNombre(enemigoActualizado.getNombre());
             enemigo.setPais(enemigoActualizado.getPais());
             enemigo.setAfiliacion(enemigoActualizado.getAfiliacion());
             System.out.println("Actualizando enemigo ID: " + id);
             return enemigoRepository.save(enemigo);
         } else {
-            System.out.println("Enemigo no encontrado con ID: " + id);
-            return null;
+            throw new IllegalArgumentException("Enemigo no encontrado con ID: " + id);
         }
     }
 
@@ -53,8 +70,7 @@ public class EnemigoService {
             System.out.println("Enemigo eliminado con ID: " + id);
             return true;
         } else {
-            System.out.println("Enemigo no encontrado con ID: " + id);
-            return false;
+            throw new IllegalArgumentException("Enemigo no encontrado con ID: " + id);
         }
     }
 }

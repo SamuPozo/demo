@@ -3,6 +3,8 @@ package dam.saruman.entity;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @Document(collection = "enemigosestado")
 public class Enemigo {
@@ -10,6 +12,8 @@ public class Enemigo {
     @Id
     private String id;
 
+    @NotBlank(message = "El nombre es obligatorio")
+    @Size(min = 3, message = "El nombre debe tener al menos 3 caracteres")
     @Field("nombre")
     private String nombre;
 
@@ -19,11 +23,9 @@ public class Enemigo {
     @Field("afiliacion")
     private String afiliacion;
 
-    // Constructor vacío
     public Enemigo() {
     }
 
-    // Constructor con parámetros
     public Enemigo(String id, String nombre, String pais, String afiliacion){
         this.id = id;
         this.nombre = nombre;
@@ -31,7 +33,6 @@ public class Enemigo {
         this.afiliacion = afiliacion;
     }
 
-    // Getters y Setters
     public String getId(){
         return id;
     }

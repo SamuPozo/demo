@@ -1,7 +1,8 @@
+let enemigosGlobales = [];
+
 document.addEventListener('DOMContentLoaded', () => {
     cargarEnemigos();
 
-    // Event listeners para los formularios
     document.getElementById('formInsertar').addEventListener('submit', insertarEnemigo);
     document.getElementById('formEditar').addEventListener('submit', editarEnemigo);
     document.getElementById('formEliminar').addEventListener('submit', eliminarEnemigo);
@@ -11,10 +12,11 @@ async function cargarEnemigos() {
     try {
         const response = await fetch('api/enemigo');
         const enemigos = await response.json();
+        enemigosGlobales = enemigos;
         mostrarEnemigos(enemigos);
-
     } catch (error) {
         console.error("Error al cargar enemigos: " + error);
+        mostrarMensajeGeneral("Error al cargar enemigos", "error");
     }
 }
 
@@ -26,6 +28,7 @@ function mostrarEnemigos(enemigos) {
 
     if (enemigos.length === 0) {
         console.log("No hay enemigos");
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay enemigos registrados</td></tr>';
         return;
     }
 
@@ -43,13 +46,86 @@ function mostrarEnemigos(enemigos) {
     table.style.display = 'table';
 }
 
-// INSERTAR
+// NUEVO: Buscar
+async function buscarEnemigo() {
+    const nombre = document.getElementById('searchInput').value.trim();
+
+    if(!nombre){
+        mostrarMensajeGeneral("Por favor ingresa un nombre para buscar", "error");
+        return;
+    }
+
+    try {
+        const response = await fetch(`api/enemigo/buscar?nombre=${encodeURIComponent(nombre)}`);
+
+        if (response.ok) {
+            const enemigos = await response.json();
+            enemigosGlobales = enemigos;
+            mostrarEnemigos(enemigos);
+            mostrarMensajeGeneral(`Se encontraron ${enemigos.length} enemigo(s)`, "exito");
+        } else {
+            const error = await response.json();
+            mostrarMensajeGeneral(error.error || "No se encontraron resultados", "error");
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarMensajeGeneral('Error al buscar: ' + error, 'error');
+    }
+}
+
+// NUEVO: Limpiar búsqueda
+function limpiarBusqueda() {
+    document.getElementById('searchInput').value = '';
+    cargarEnemigos();
+}
+
+// NUEVO: Ordenar
+function ordenarAlfabeticamente() {
+    const enemigosOrdenados = [...enemigosGlobales].sort((a, b) =>
+        a.nombre.localeCompare(b.nombre)
+    );
+    mostrarEnemigos(enemigosOrdenados);
+    mostrarMensajeGeneral("Tabla ordenada alfabéticamente", "exito");
+}
+
+// NUEVO: Descargar CSV
+function descargarCSV() {
+    if(enemigosGlobales.length === 0){
+        mostrarMensajeGeneral("No hay datos para descargar", "error");
+        return;
+    }
+
+    let csv = 'ID,Nombre,País,Afiliación\n';
+    enemigosGlobales.forEach(enemigo => {
+        csv += `"${enemigo.id}","${enemigo.nombre}","${enemigo.pais}","${enemigo.afiliacion}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'enemigos.csv');
+    link.style.visibility = 'hidden';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    mostrarMensajeGeneral("Archivo CSV descargado correctamente", "exito");
+}
+
 async function insertarEnemigo(e) {
     e.preventDefault();
 
     const nombre = document.getElementById('insertNombre').value;
     const pais = document.getElementById('insertPais').value;
     const afiliacion = document.getElementById('insertAfiliacion').value;
+
+    if(nombre.length < 3){
+        mostrarMensaje('mensajeInsertar', 'El nombre debe tener al menos 3 caracteres', 'error');
+        return;
+    }
 
     const nuevoEnemigo = {
         nombre: nombre,
@@ -69,9 +145,10 @@ async function insertarEnemigo(e) {
         if (response.ok) {
             mostrarMensaje('mensajeInsertar', 'Enemigo insertado correctamente', 'exito');
             document.getElementById('formInsertar').reset();
-            cargarEnemigos(); // Recargar la tabla
+            cargarEnemigos();
         } else {
-            mostrarMensaje('mensajeInsertar', 'Error al insertar enemigo', 'error');
+            const error = await response.json();
+            mostrarMensaje('mensajeInsertar', error.error || 'Error al insertar enemigo', 'error');
         }
     } catch (error) {
         console.error('Error:', error);
@@ -79,7 +156,6 @@ async function insertarEnemigo(e) {
     }
 }
 
-// EDITAR
 async function editarEnemigo(e) {
     e.preventDefault();
 
@@ -87,6 +163,11 @@ async function editarEnemigo(e) {
     const nombre = document.getElementById('editNombre').value;
     const pais = document.getElementById('editPais').value;
     const afiliacion = document.getElementById('editAfiliacion').value;
+
+    if(nombre.length < 3){
+        mostrarMensaje('mensajeEditar', 'El nombre debe tener al menos 3 caracteres', 'error');
+        return;
+    }
 
     const enemigoActualizado = {
         nombre: nombre,
@@ -106,9 +187,10 @@ async function editarEnemigo(e) {
         if (response.ok) {
             mostrarMensaje('mensajeEditar', 'Enemigo actualizado correctamente', 'exito');
             document.getElementById('formEditar').reset();
-            cargarEnemigos(); // Recargar la tabla
+            cargarEnemigos();
         } else {
-            mostrarMensaje('mensajeEditar', 'Error al actualizar enemigo', 'error');
+            const error = await response.json();
+            mostrarMensaje('mensajeEditar', error.error || 'Error al actualizar enemigo', 'error');
         }
     } catch (error) {
         console.error('Error:', error);
@@ -116,7 +198,6 @@ async function editarEnemigo(e) {
     }
 }
 
-// ELIMINAR
 async function eliminarEnemigo(e) {
     e.preventDefault();
 
@@ -134,9 +215,10 @@ async function eliminarEnemigo(e) {
         if (response.ok) {
             mostrarMensaje('mensajeEliminar', 'Enemigo eliminado correctamente', 'exito');
             document.getElementById('formEliminar').reset();
-            cargarEnemigos(); // Recargar la tabla
+            cargarEnemigos();
         } else {
-            mostrarMensaje('mensajeEliminar', 'Error al eliminar enemigo', 'error');
+            const error = await response.json();
+            mostrarMensaje('mensajeEliminar', error.error || 'Error al eliminar enemigo', 'error');
         }
     } catch (error) {
         console.error('Error:', error);
@@ -144,7 +226,6 @@ async function eliminarEnemigo(e) {
     }
 }
 
-// Función auxiliar para mostrar mensajes
 function mostrarMensaje(elementoId, mensaje, tipo) {
     const elemento = document.getElementById(elementoId);
     elemento.textContent = mensaje;
@@ -153,5 +234,16 @@ function mostrarMensaje(elementoId, mensaje, tipo) {
 
     setTimeout(() => {
         elemento.style.display = 'none';
+    }, 3000);
+}
+
+function mostrarMensajeGeneral(mensaje, tipo) {
+    const mensajeDiv = document.createElement('div');
+    mensajeDiv.className = `mensaje ${tipo} mensaje-flotante`;
+    mensajeDiv.textContent = mensaje;
+    document.body.appendChild(mensajeDiv);
+
+    setTimeout(() => {
+        mensajeDiv.remove();
     }, 3000);
 }
